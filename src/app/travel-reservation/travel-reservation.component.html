@@ -1,0 +1,114 @@
+<div class="container">
+  <h2>Sistema de Reserves de Viatges</h2>
+
+  <div class="search-box">
+    <label>Cerca ràpida de destinació:</label>
+    <input type="text" [formControl]="searchControl" placeholder="Filtra ciutats...">
+    <p *ngIf="filteredDestinations.length === 0" class="error-msg">No s'han trobat resultats</p>
+  </div>
+
+  <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()">
+    
+    <fieldset>
+      <legend>Dades del Client</legend>
+      
+      <div class="form-group">
+        <label>Nom Complet:</label>
+        <input type="text" formControlName="fullName">
+        <div *ngIf="bookingForm.get('fullName')?.touched && bookingForm.get('fullName')?.invalid" class="error-msg">
+          Mínim 3 caràcters, només lletres i espais.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>DNI/NIE:</label>
+        <input type="text" formControlName="dniNie">
+      </div>
+
+      <div class="form-group">
+        <label>Email:</label>
+        <input type="email" formControlName="email">
+        <div *ngIf="bookingForm.get('email')?.pending" class="info-msg">Comprovant...</div>
+        <div *ngIf="bookingForm.get('email')?.errors?.['emailTaken']" class="error-msg">L'email ja existeix.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Telèfon:</label>
+        <input type="text" formControlName="phone">
+      </div>
+
+      <div class="form-group">
+        <label>Data de Naixement:</label>
+        <input type="date" formControlName="birthDate">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Informació del Viatge</legend>
+
+      <div class="form-group">
+        <label>Destinació:</label>
+        <select formControlName="destination">
+          <option *ngFor="let d of filteredDestinations" [value]="d">{{d}}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Data de Sortida:</label>
+        <input type="date" formControlName="departureDate">
+      </div>
+
+      <div class="form-group">
+        <label>Data de Retorn:</label>
+        <input type="date" formControlName="returnDate">
+        <div *ngIf="bookingForm.errors?.['invalidRange']" class="error-msg">La tornada ha de ser posterior a la sortida.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Tipus de Viatge:</label>
+        <input type="radio" value="anada" formControlName="tripType"> Només anada
+        <input type="radio" value="anada_tornada" formControlName="tripType"> Anada i tornada
+      </div>
+
+      <div class="form-group">
+        <label>Classe:</label>
+        <select formControlName="travelClass">
+          <option value="turista">Turista</option>
+          <option value="business">Business</option>
+          <option value="primera">Primera classe</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Nombre de Passatgers (1-10):</label>
+        <input type="number" formControlName="passengersCount">
+      </div>
+    </fieldset>
+
+    <div formArrayName="additionalPassengers" *ngIf="additionalPassengers.length > 0">
+      <h3>Dades Passatgers Addicionals</h3>
+      <div *ngFor="let p of additionalPassengers.controls; let i = index" [formGroupName]="i" class="passenger-card">
+        <h4>Passatger {{ i + 2 }}</h4>
+        <input type="text" formControlName="nom" placeholder="Nom">
+        <input type="number" formControlName="edat" placeholder="Edat">
+        <select formControlName="relacio">
+          <option value="familia">Familia</option>
+          <option value="amic">Amic</option>
+          <option value="altre">Altre</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="conditions">
+      <input type="checkbox" formControlName="terms"> Accepto termes i condicions (required)
+      <br>
+      <input type="checkbox" formControlName="newsletter"> Rebre newsletter
+    </div>
+
+    <div class="price-display">
+      Preu Total: <strong>{{ totalPrice }}€</strong>
+    </div>
+
+    <button type="submit" [disabled]="bookingForm.invalid">Submit</button>
+  </form>
+</div>
