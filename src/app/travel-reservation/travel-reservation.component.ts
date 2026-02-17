@@ -37,7 +37,7 @@ export class TravelReservationComponent implements OnInit {
       // Dades del Client
       fullName: ['', [Validators.required, Validators.minLength(3), CustomValidators.nameValidator]],
       dniNie: ['', [Validators.required, CustomValidators.dniNieValidator]],
-      email: ['', [Validators.required, Validators.email], [CustomValidators.emailExists]], // Validador asíncron (3r paràmetre)
+      email: ['', [Validators.required, Validators.email], [CustomValidators.emailExists]], // Validador asíncron 
       phone: ['', [Validators.required, CustomValidators.phoneValidator]],
       birthDate: ['', [Validators.required, CustomValidators.ageValidator]],
       
