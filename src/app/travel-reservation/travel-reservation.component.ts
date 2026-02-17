@@ -21,9 +21,11 @@ export class TravelReservationComponent implements OnInit {
   constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
-    this.initForm(); // Inicialitzem l'estructura del formulari
-    this.setupSearch(); // Activem el buscador reactiu
-    this.setupPriceAndPassengerSync(); // Activem la sincronització de preus i passatgers
+    this.initForm(); 
+    this.setupSearch(); 
+    this.setupPriceAndPassengerSync(); 
+    // Funcions declarades aqui perqué porten observables (.subscribe()) i llavors al executarles es queden tot el runtime actives.
+
   }
 
   /**
@@ -31,7 +33,7 @@ export class TravelReservationComponent implements OnInit {
    * Agrupa validacions de sistema (Angular) i personalitzades.
    */
   initForm() {
-    this.bookingForm = this.fb.group({
+    this.bookingForm = this.fb.group({ // FormGroup principal - agrupe tots els camps de reserva
       // Dades del Client
       fullName: ['', [Validators.required, Validators.minLength(3), CustomValidators.nameValidator]],
       dniNie: ['', [Validators.required, CustomValidators.dniNieValidator]],
@@ -93,9 +95,10 @@ export class TravelReservationComponent implements OnInit {
 
   /**
    * Afegeix o elimina grups de camps al FormArray segons el nombre de passatgers triat.
+   * FormGroup de passatgers - es crea un formGroup quan s'afegeix un acompanyant, conté les dades.
    */
   adjustAdditionalPassengers(total: number) {
-    const extraNeeded = total - 1; // El primer passatger és el titular osigui que no va a l'array.
+    const extraNeeded = total - 1; // El primer passatger és el titular osigui que no va a l'array. Tants formGroups com acompanyants.
     
     // Si en falten, els creem
     while (this.additionalPassengers.length < extraNeeded) {

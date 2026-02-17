@@ -62,8 +62,8 @@ export class CustomValidators {
   }
 
   /**
-   * Validador Asíncron d'Email
-   * Simula una consulta a una base de dades (espera 1 segon) per comprovar si l'email ja està registrat.
+   * Validador Asíncron d'Email, basicament es fa servir per comprovar si un email ja está registrat. 
+   * Simula una consulta a una base de dades (espera 1 segon).
    * L'estat del camp serà 'PENDING' mentre s'executa.
    */
   static emailExists(control: AbstractControl): Observable<ValidationErrors | null> {
