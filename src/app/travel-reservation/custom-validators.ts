@@ -1,58 +1,89 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { of, Observable } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { delay, map } from 'rxjs/operators'; // Per gestionar operacions asíncrones i fluxos de dades, en el meu cas per simular una espera.
 
 export class CustomValidators {
-  // Validador de Nom (nomes lletres i espais)
+  
+  /**
+   * Validador de Nom
+   * Comprova que el text tingui només lletres, amb accents, la ñ i espais.
+   */
   static nameValidator(control: AbstractControl): ValidationErrors | null {
     const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+    // Si el valor passa el regex, retornem null, si no, retornem l'error 'invalidName'.
     return nameRegex.test(control.value) ? null : { invalidName: true };
   }
 
-  // Validador de Telefon Espanyol (9 digits, comencen per 6, 7 o 9)
+  /**
+   * Validador Telf
+   * Valida que el número tingui 9 digits i comenci per 6, 7 o 9.
+   */
   static phoneValidator(control: AbstractControl): ValidationErrors | null {
     const phoneRegex = /^[679]\d{8}$/;
     return phoneRegex.test(control.value) ? null : { invalidPhone: true };
   }
 
-  // Validador de DNI/NIE espanyol
+  /**
+   * Validador de DNI/NIE
+   * Segueix el format de 8 números + lletra (DNI) o lletra X/Y/Z + 7 números + lletra (NIE).
+   */
   static dniNieValidator(control: AbstractControl): ValidationErrors | null {
     const dniRegex = /^[0-9]{8}[TRWAGMYFPDXBNJZSQVHLCKE]$|^[XYZ][0-9]{7}[TRWAGMYFPDXBNJZSQVHLCKE]$/i;
     return dniRegex.test(control.value) ? null : { invalidDni: true };
   }
 
-  // Validador d'Edat Minima (major de 18)
+  /**
+   * Validador d'Edat Mínima
+   * Calcula si l'usuari té 18 anys o més comparant la data de naixement amb la data actual.
+   * Té en compte el dia i el mes.
+   */
   static ageValidator(control: AbstractControl): ValidationErrors | null {
-    if (!control.value) return null;
+    if (!control.value) return null; // Si no hi ha valor, no validem encara.
     const birthDate = new Date(control.value);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
+    
+    // Si encara no ha arribat el seu mes o el seu dia d'aniversari aquest any, restem un any.
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
     return age >= 18 ? null : { underAge: true };
   }
 
-  // Validador de Data Futura
+  /**
+   * Validador de Data Futura
+   * Assegura que la data de sortida sigui posterior al dia d'avui.
+   * Reseteja les hores a zero per comparar només els dies.
+   */
   static futureDateValidator(control: AbstractControl): ValidationErrors | null {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0); // Ignorem l'hora actual per a la comparació.
     const inputDate = new Date(control.value);
     return inputDate > today ? null : { notFuture: true };
   }
 
-  // Validador Asincrona d'Email
+  /**
+   * Validador Asíncron d'Email
+   * Simula una consulta a una base de dades (espera 1 segon) per comprovar si l'email ja està registrat.
+   * L'estat del camp serà 'PENDING' mentre s'executa.
+   */
   static emailExists(control: AbstractControl): Observable<ValidationErrors | null> {
     const existingEmails = ['test@test.com', 'reserva@viajes.com', 'admin@travel.com'];
     return of(existingEmails.includes(control.value)).pipe(
-      delay(1000), // Simular delay de 1 segon
-      map(exists => (exists ? { emailTaken: true } : null))
+      delay(1000), // Simulem latència aturant el flux de dades durant el temps demanat. 
+      map(exists => (exists ? { emailTaken: true } : null)) // El map agafa el resultat booleà i el mapeja al format que Angular entén.
+      // Si existeix envia el error, en cas contrari retorna null. 
     );
   }
 
-  // Validador Creuada de Dates
+  /**
+   * Validador Creuat de Dates
+   * S'aplica al FormGroup complet per comparar dos camps alhora: sortida i retorn.
+   * El retorn ha de ser estrictament posterior a la sortida.
+   */
   static dateRangeValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
     const start = group.get('departureDate')?.value;
     const end = group.get('returnDate')?.value;
+    // Si ambdues dates existeixen, comprovem que el retorn sigui posterior a la sortida.
     return start && end && new Date(end) > new Date(start) ? null : { invalidRange: true };
   };
 }

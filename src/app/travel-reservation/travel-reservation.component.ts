@@ -11,46 +11,56 @@ import { CustomValidators } from './custom-validators';
   styleUrls: ['./travel-reservation.component.css']
 })
 export class TravelReservationComponent implements OnInit {
-  bookingForm!: FormGroup;
-  searchControl = new FormControl(''); // Filtre independent
+  bookingForm!: FormGroup; // El grup principal del formulari
+  searchControl = new FormControl(''); // Control independent per al filtre de cerca
+  
   destinations = ['Barcelona', 'Madrid', 'Valencia', 'Sevilla', 'Bilbao', 'Mallorca'];
-  filteredDestinations = [...this.destinations];
-  totalPrice = 0;
+  filteredDestinations = [...this.destinations]; // Llista que es mostrarà al HTML
+  totalPrice = 0; // Variable per emmagatzemar el preu calculat
 
   constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
-    this.initForm();
-    this.setupSearch();
-    this.setupPriceAndPassengerSync();
+    this.initForm(); // Inicialitzem l'estructura del formulari
+    this.setupSearch(); // Activem el buscador reactiu
+    this.setupPriceAndPassengerSync(); // Activem la sincronització de preus i passatgers
   }
 
+  /**
+   * Defineix tota l'estructura del formulari reactiu.
+   * Agrupa validacions de sistema (Angular) i personalitzades.
+   */
   initForm() {
     this.bookingForm = this.fb.group({
-      // 1. Dades del Client
+      // Dades del Client
       fullName: ['', [Validators.required, Validators.minLength(3), CustomValidators.nameValidator]],
       dniNie: ['', [Validators.required, CustomValidators.dniNieValidator]],
-      email: ['', [Validators.required, Validators.email], [CustomValidators.emailExists]],
+      email: ['', [Validators.required, Validators.email], [CustomValidators.emailExists]], // Validador asíncron (3r paràmetre)
       phone: ['', [Validators.required, CustomValidators.phoneValidator]],
       birthDate: ['', [Validators.required, CustomValidators.ageValidator]],
       
-      // 2. Informacio del Viatge
+      // Informació del Viatge
       destination: ['', Validators.required],
       departureDate: ['', [Validators.required, CustomValidators.futureDateValidator]],
       returnDate: ['', Validators.required],
       tripType: ['anada', Validators.required],
       travelClass: ['turista', Validators.required],
       passengersCount: [1, [Validators.required, Validators.min(1), Validators.max(10)]],
-      additionalPassengers: this.fb.array([]), // FormArray
+      additionalPassengers: this.fb.array([]), // Array dinàmic per a passatgers extra
       
-      // 3. Condicions
+      // Checkboxes obligatoris i opcionals
       terms: [false, Validators.requiredTrue],
       newsletter: [false]
-    }, { validators: CustomValidators.dateRangeValidator });
+    }, { 
+      // Validació creuada per comparar la data d'anada i tornada
+      validators: CustomValidators.dateRangeValidator 
+    });
   }
 
+  /**
+   * Escolta els canvis al camp de cerca i filtra l'array de destinacions.
+   */
   setupSearch() {
-    // Filtre de cerca en temps real
     this.searchControl.valueChanges.subscribe(val => {
       const filterValue = val?.toLowerCase() || '';
       this.filteredDestinations = this.destinations.filter(d => 
@@ -59,23 +69,35 @@ export class TravelReservationComponent implements OnInit {
     });
   }
 
+  /**
+   * Gestiona la reactivitat del formulari: 
+   * 1. Si canvia el nombre de passatgers, ajusta els camps del FormArray.
+   * 2. Si canvia qualsevol dada, torna a calcular el preu.
+   */
   setupPriceAndPassengerSync() {
-    // Ajustar FormArray segons nombre de passatgers
     this.bookingForm.get('passengersCount')?.valueChanges.subscribe(num => {
       this.adjustAdditionalPassengers(num);
       this.calculatePrice();
     });
 
-    // Recalcular preu quan canvia qualsevol valor rellevant
+    // Subscripció global als canvis per actualitzar el preu total
     this.bookingForm.valueChanges.subscribe(() => this.calculatePrice());
   }
 
+  /**
+   * Getter per facilitar l'accés al FormArray des del HTML.
+   */
   get additionalPassengers() {
     return this.bookingForm.get('additionalPassengers') as FormArray;
   }
 
+  /**
+   * Afegeix o elimina grups de camps al FormArray segons el nombre de passatgers triat.
+   */
   adjustAdditionalPassengers(total: number) {
-    const extraNeeded = total - 1;
+    const extraNeeded = total - 1; // El primer passatger és el titular osigui que no va a l'array.
+    
+    // Si en falten, els creem
     while (this.additionalPassengers.length < extraNeeded) {
       this.additionalPassengers.push(this.fb.group({
         nom: ['', Validators.required],
@@ -83,19 +105,25 @@ export class TravelReservationComponent implements OnInit {
         relacio: ['', Validators.required]
       }));
     }
+    // Si en sobren, els eliminem per la cua
     while (this.additionalPassengers.length > extraNeeded) {
       this.additionalPassengers.removeAt(this.additionalPassengers.length - 1);
     }
   }
 
+  /**
+   * Multiplica el preu base de la classe pel nombre de passatgers.
+   */
   calculatePrice() {
-    // Preus base: Turista (100), Business (250), Primera (500)
     const prices: { [key: string]: number } = { 'turista': 100, 'business': 250, 'primera': 500 };
     const base = prices[this.bookingForm.get('travelClass')?.value] || 0;
     const qty = this.bookingForm.get('passengersCount')?.value || 1;
     this.totalPrice = base * qty;
   }
 
+  /**
+   * S'executa en enviar el formulari. Només mostra les dades si tot és vàlid.
+   */
   onSubmit() {
     if (this.bookingForm.valid) {
       console.log('Dades del formulari:', this.bookingForm.value);
