@@ -1,6 +1,6 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { of, Observable } from 'rxjs';
-import { delay, map } from 'rxjs/operators'; // Per gestionar operacions asíncrones i fluxos de dades, en el meu cas per simular una espera.
+import { delay, map } from 'rxjs/operators';
 
 export class CustomValidators {
   

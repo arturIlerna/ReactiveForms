@@ -72,9 +72,9 @@ export class TravelReservationComponent implements OnInit {
   }
 
   /**
-   * Gestiona la reactivitat del formulari: 
-   * 1. Si canvia el nombre de passatgers, ajusta els camps del FormArray.
-   * 2. Si canvia qualsevol dada, torna a calcular el preu.
+   * Gestio reactivitat del formulari: 
+   * Si canvia el nombre de passatgers, ajusta els camps del FormArray.
+   * Si canvia qualsevol dada, torna a calcular el preu.
    */
   setupPriceAndPassengerSync() {
     this.bookingForm.get('passengersCount')?.valueChanges.subscribe(num => {
@@ -82,7 +82,7 @@ export class TravelReservationComponent implements OnInit {
       this.calculatePrice();
     });
 
-    // Subscripció global als canvis per actualitzar el preu total
+    // Subscribe global als canvis per actualitzar el preu total
     this.bookingForm.valueChanges.subscribe(() => this.calculatePrice());
   }
 
