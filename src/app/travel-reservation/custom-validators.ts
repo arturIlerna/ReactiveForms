@@ -63,27 +63,27 @@ export class CustomValidators {
 
   /**
    * Validador Asíncron d'Email, basicament es fa servir per comprovar si un email ja está registrat. 
-   * Simula una consulta a una base de dades (espera 1 segon).
+   * Simula una consulta a una base de dades.
    * L'estat del camp serà 'PENDING' mentre s'executa.
    */
   static emailExists(control: AbstractControl): Observable<ValidationErrors | null> {
     const existingEmails = ['test@test.com', 'reserva@viajes.com', 'admin@travel.com'];
     return of(existingEmails.includes(control.value)).pipe(
-      delay(1000), // Simulem latència aturant el flux de dades durant el temps demanat. 
-      map(exists => (exists ? { emailTaken: true } : null)) // El map agafa el resultat booleà i el mapeja al format que Angular entén.
+      delay(1000), // Simulem espera paran el flux de dades durant el temps demanat. 
+      map(exists => (exists ? { emailTaken: true } : null)) // El map agafa el resultat booleà i el mapeja al format que Angular enten.
       // Si existeix envia el error, en cas contrari retorna null. 
     );
   }
 
   /**
    * Validador Creuat de Dates
-   * S'aplica al FormGroup complet per comparar dos camps alhora: sortida i retorn.
-   * El retorn ha de ser estrictament posterior a la sortida.
+   * FormGroup complet per comparar dos camps alhora: sortida i retorn.
+   * El retorn ha de ser posterior a la sortida.
    */
   static dateRangeValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
     const start = group.get('departureDate')?.value;
     const end = group.get('returnDate')?.value;
-    // Si ambdues dates existeixen, comprovem que el retorn sigui posterior a la sortida.
+    // Si estan les dos dates, comprovem que el retorn sigui posterior a la sortida.
     return start && end && new Date(end) > new Date(start) ? null : { invalidRange: true };
   };
 }
